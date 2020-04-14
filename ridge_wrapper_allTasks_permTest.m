@@ -98,6 +98,8 @@ for tasknum = 1:length(taskname)
     k = 10;
     seeds = randi(1000,1,numiter);
     q_s = zeros(numiter,5);
+    r_pearson = zeros(numiter,5);
+    r_rank = zeros(numiter,5);
     y = cell(5,numiter);
     coef_total = cell(5,numiter);
     coef0_total = cell(5,numiter);
@@ -109,14 +111,14 @@ for tasknum = 1:length(taskname)
             try
             if i<=3 % first include each beta individually
                 all_mats_tot = squeeze(all_mats(:,:,:,i));
-                [q_s(iter,i), ~, ~, y{i,iter}, coef_total{i,iter}, coef0_total{i,iter}, lambda_total{i,iter}] = ridgeCPM_vector(all_mats_tot, [], all_behav, thresh, famid, [], [], k, seeds(iter));
+                [q_s(iter,i), r_pearson(iter,i), r_rank(iter,i), y{i,iter}, coef_total{i,iter}, coef0_total{i,iter}, lambda_total{i,iter}] = ridgeCPM_vector_new(all_mats_tot, [], all_behav, thresh, famid, [], [], k, seeds(iter));
             elseif i==4 % now task activation alone
                 all_vecs_tot = all_vecs;
-                [q_s(iter,i), ~, ~, y{i,iter}, coef_total{i,iter}, coef0_total{i,iter}, lambda_total{i,iter}] = ridgeCPM_vector([], all_vecs_tot, all_behav, thresh, famid, [], [], k, seeds(iter));
+                [q_s(iter,i), r_pearson(iter,i), r_rank(iter,i), y{i,iter}, coef_total{i,iter}, coef0_total{i,iter}, lambda_total{i,iter}] = ridgeCPM_vector_new([], all_vecs_tot, all_behav, thresh, famid, [], [], k, seeds(iter));
             elseif i==5 % on last run-through, include all terms
                 all_mats_tot = all_mats;
                 all_vecs_tot = all_vecs;
-                [q_s(iter,i), ~, ~, y{i,iter}, coef_total{i,iter}, coef0_total{i,iter}, lambda_total{i,iter}] = ridgeCPM_vector(all_mats_tot, all_vecs_tot, all_behav, thresh, famid, [], [], k, seeds(iter));
+                [q_s(iter,i), r_pearson(iter,i), r_rank(iter,i), y{i,iter}, coef_total{i,iter}, coef0_total{i,iter}, lambda_total{i,iter}] = ridgeCPM_vector_new(all_mats_tot, all_vecs_tot, all_behav, thresh, famid, [], [], k, seeds(iter));
             end
             catch % if term fails (ie no edges correlated with gF), move on to next term
                 disp(['no edges correlate with gF for term ' beta_order{i} ', task ' taskname{tasknum} '. moving on to next term'])
@@ -125,7 +127,7 @@ for tasknum = 1:length(taskname)
         end
         all_behav = [];
     end
-    save([homedir dataset '/results/',dataset, '_', taskname{tasknum} '_ridge_p',num2str(thresh),'_' num2str(numiter) 'iters_' savename '_prediction_noGSR_permTest_withCue.mat'],'q_s','y','coef_total','coef0_total','lambda_total','beta_order','seeds','beta_idx','-v7.3');
+    save([homedir dataset '/results/',dataset, '_', taskname{tasknum} '_ridge_p',num2str(thresh),'_' num2str(numiter) 'iters_' savename '_prediction_noGSR_permTest_withCue.mat'],'q_s','r_pearson', 'r_rank','y','coef_total','coef0_total','lambda_total','beta_order','seeds','beta_idx','-v7.3');
     clearvars -except homedir taskname tasknum dataset symmetrize all_behav famid beta_idx numiter thresh savename Pset real_behav
 
 end

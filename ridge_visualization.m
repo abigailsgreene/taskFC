@@ -8,7 +8,7 @@ gsr = 'noGSR'; % did we do GSR?
 symmetrize = 1; % did we symmetrize the beta matrices before inputting them to ridge prediction? 1 = yes, 0 = no
 numiters = '1';
 pthresh = '0.1';
-npct = 0.75; %percentage of the iterations on which we require feature to be selected in order to analyze it
+npct = 1; %percentage of the iterations on which we require feature to be selected in order to analyze it
 
 % iterate through all tasks
 for t = 1:length(taskname)
@@ -106,13 +106,15 @@ for t = 1:length(taskname)
     num_edges = size(all_mats_vec,1);
     num_nodes = size(all_mats,1);
     
-    % load ridge CPM results
-%     if strcmp(taskname{t},'language')
-%         load([homedir dataset '/results/' dataset '_' taskname{t} '_ridge_p' pthresh '_' numiters 'iters_pmat_prediction_' gsr '_withCue.mat']);
-%     else
+    % load ridge CPM results - below example is loading prediction results
+    % after regressing motion out of behavior and brain; note that
+    % whatever results are loaded in should be checked to ensure that
+    % iterations are unique (i.e., didn't use same seed) - if not, only
+    % select unique iterations from coef_total
+    
        load([homedir dataset '/results/motionRegression/' dataset '_' taskname{t} '_ridge_p' pthresh '_' numiters 'iters_10fold_pmat_prediction_' gsr '_withCue_preAllocatedCoeff.mat'],'coef_total_resid'); 
         coef_total = coef_total_resid;
-       %     end
+
     % iterate through 5 terms (intercept, ciFC, cdFC, activation, tot)
     for term = 1:size(coef_total,1)
         clear coef_bin coef_tot
