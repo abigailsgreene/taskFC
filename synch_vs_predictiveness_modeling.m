@@ -6,7 +6,7 @@
 % weights (ie predictive utility) and column 2 is intersub synch
 
 % Stuff to change, as necessary
-nets = 'activation'; % options = full (specific networks) vs bwwin (bw = 0, within net = 1); vs hemisphere (0 = within hemi, 1 = cross) vs distance vs activation vs reliability
+nets = 'activation'; % options = bwwin (bw = 0, within net = 1); vs hemisphere (0 = within hemi, 1 = cross) vs distance vs activation vs reliability
 taskname = {'gambling','emotion','wm','social','relational'};
 sign = 'absolute'; % do we want to take the absolute value of predictive utility and synchrony? 'absolute' = yes, 'signed' = no
 standardize = 1; % if standardize==1, zscore predictors and outcome before modeling
@@ -50,10 +50,7 @@ lower_idx = find(tril(ones(268,268),-1));
 % end
 
 %% version where we only use predictive edges
-if strcmp(nets,'full') % use all 55 network pair labels
-    netmat_lower = netmat(lower_idx);
-    netmat_diag = diag(netmat);
-elseif strcmp(nets,'bwwin') % only label edges as between (0) or within (1) network
+if strcmp(nets,'bwwin') % only label edges as between (0) or within (1) network
     netmat_diag = diag(netmat);
     netmat_lower_tmp = netmat(lower_idx);
     netmat_lower = zeros(length(netmat_lower_tmp),1); % between network elements will remain 0
@@ -114,13 +111,13 @@ for i = 1:5 % iterate through five tasks
     if standardize==1 % nb added zscore around additional netmat term for distance, reliability, and activation (not dummy coded bw/win or hemisphere)
         [betas_intrinsic(:,i),~,~,~,stats_intrinsic{i}] = regress(zscore(intrinsic_pred_synch{i}(intrinsic_idx,1)),[ones(length(intrinsic_idx),1) zscore(intrinsic_pred_synch{i}(intrinsic_idx,2)) zscore(netmat_lower(intrinsic_idx)) (zscore(intrinsic_pred_synch{i}(intrinsic_idx,2).*netmat_lower(intrinsic_idx)))]);
         [betas_interaction(:,i),~,~,~,stats_interaction{i}] = regress(zscore(interaction_pred_synch{i}(interaction_idx,1)),[ones(length(interaction_idx),1) zscore(interaction_pred_synch{i}(interaction_idx,2)) zscore(netmat_lower(interaction_idx)) (zscore(interaction_pred_synch{i}(interaction_idx,2).*netmat_lower(interaction_idx)))]);
-        if find(strcmp(nets,{'full','activation'})) % only do regression on activation term predictiveness if we're doing network analysis (meaningless for distance [0] or hemisphere [all same]) or using mean activation as covariate
+        if find(strcmp(nets,{'activation'})) % only do regression on activation term predictiveness if we're doing network analysis (meaningless for distance [0] or hemisphere [all same]) or using mean activation as covariate
             [betas_activation(:,i),~,~,~,stats_activation{i}] = regress(zscore(activation_pred_synch{i}(activation_idx,1)),[ones(length(activation_idx),1) zscore(activation_pred_synch{i}(activation_idx,2)) zscore(netmat_diag(activation_idx)) (zscore(activation_pred_synch{i}(activation_idx,2).*netmat_diag(activation_idx)))]);
         end
     else
         [betas_intrinsic(:,i),~,~,~,stats_intrinsic{i}] = regress(intrinsic_pred_synch{i}(intrinsic_idx,1),[ones(length(intrinsic_idx),1) intrinsic_pred_synch{i}(intrinsic_idx,2) netmat_lower(intrinsic_idx) intrinsic_pred_synch{i}(intrinsic_idx,2).*netmat_lower(intrinsic_idx)]);
         [betas_interaction(:,i),~,~,~,stats_interaction{i}] = regress(interaction_pred_synch{i}(interaction_idx,1),[ones(length(interaction_idx),1) interaction_pred_synch{i}(interaction_idx,2) netmat_lower(interaction_idx) interaction_pred_synch{i}(interaction_idx,2).*netmat_lower(interaction_idx)]);
-        if find(strcmp(nets,{'full','activation'})) % only do regression on activation term predictiveness if we're doing network analysis (meaningless for distance [0] or hemisphere [all same]) or using mean activation as covariate
+        if find(strcmp(nets,{'activation'})) % only do regression on activation term predictiveness if we're doing network analysis (meaningless for distance [0] or hemisphere [all same]) or using mean activation as covariate
             [betas_activation(:,i),~,~,~,stats_activation{i}] = regress(activation_pred_synch{i}(activation_idx,1),[ones(length(activation_idx),1) activation_pred_synch{i}(activation_idx,2) netmat_diag(activation_idx) activation_pred_synch{i}(activation_idx,2).*netmat_diag(activation_idx)]);
         end
     end
@@ -131,7 +128,7 @@ end
 % plot resulting betas
 figure; bar(categorical(taskname), betas_interaction','grouped'); title(['Predictive utility vs. synchrony, cdFC, ' nets, ', ' sign]); legend({'Intercept','Synchrony','Network membership','Synchrony x Network'})
 figure; bar(categorical(taskname), betas_intrinsic','grouped'); title(['Predictive utility vs. synchrony, intrinsic FC, ' nets, ', ' sign]); legend({'Intercept','Synchrony','Network membership','Synchrony x Network'})
-if find(strcmp(nets,{'full','activation'})) % only do regression on activation term predictiveness if we're doing network analysis (meaningless for distance [0] or hemisphere [all same]) or using mean activation as covariate
+if find(strcmp(nets,{'activation'})) % only do regression on activation term predictiveness if we're doing network analysis (meaningless for distance [0] or hemisphere [all same]) or using mean activation as covariate
     figure; bar(categorical(taskname), betas_activation','grouped'); title(['Predictive utility vs. synchrony, activation, ' nets, ', ' sign]); legend({'Intercept','Synchrony','Network membership','Synchrony x Network'})
 end
 
